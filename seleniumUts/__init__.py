@@ -1,9 +1,9 @@
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 import undetected_chromedriver as uc
 from selenium import webdriver
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.remote.webdriver import WebDriver as RemoteWebDriver
 import time
 
@@ -46,6 +46,29 @@ class CWebElement(WebElement):
         for c in word:
             self.send_keys(c)
             time.sleep(delay)
+    
+    def focus(self):
+        """Foca no elemento"""
+        self.parent.execute_script("arguments[0].scrollIntoView(true);", self)
+        time.sleep(0.5)
+        self.parent.execute_script("arguments[0].focus();", self)
+        return self
+    
+    def select_by_text(self, text):
+        """Seleciona item em dropdown pelo texto visível"""
+        Select(self).select_by_visible_text(text)
+        return self
+    
+    def select_by_value(self, value):
+        """Seleciona item em dropdown pelo valor"""
+        Select(self).select_by_value(value)
+        return self
+    
+    def click_js(self):
+        """Clica no elemento usando JavaScript (evita toggle indesejado)"""
+        self.driver.execute_script("arguments[0].click();", self)
+        return self
+
 
 class CustomRemoteDriver(RemoteWebDriver):
     def create_web_element(self, element_id):
@@ -87,6 +110,14 @@ class SeleniumUts:
 
         return self.driver
 
+    def find_xpath(self, xpath, time=20):
+        """Retorna elemento pelo XPath"""
+        return self.wait_xpath(xpath, time=time)
+
+    def find_css(self, selector, time=20):
+        """Retorna elemento pelo CSS"""
+        return self.wait_css(selector, time=time)
+
     def wait_xpath(self,path,time=20,throw=True):
         """
         Desc:
@@ -102,6 +133,26 @@ class SeleniumUts:
             element = WebDriverWait(self.driver, time).until(
             EC.visibility_of_element_located((By.XPATH, path)))
             return element
+        except:
+            if throw: raise
+            return None
+
+    def wait_css(self, selector, time=20, throw=True):
+        try:
+            element = WebDriverWait(self.driver, time).until(
+            EC.visibility_of_element_located((By.CSS_SELECTOR, selector))            )
+            return element
+        except:
+            if throw: raise
+            return None
+    
+    def wait_id(self, element_id, time=10,throw=True):
+        """Seleciona item em dropdown pelo texto visível"""
+        try:
+            elem = WebDriverWait(self.driver, time).until(
+                EC.presence_of_element_located((By.ID, element_id))
+            )
+            return elem
         except:
             if throw: raise
             return None
@@ -122,12 +173,54 @@ class SeleniumUts:
             future_pos = get_pos()
             if  future_pos == atual_pos:
                 break
+    
+    def accept_alert(self, time=10):
+        """Aguarda e aceita alert do navegador"""
+        WebDriverWait(self.driver, time).until(EC.alert_is_present())
+        alert = self.driver.switch_to.alert
+        txt = alert.text
+        alert.accept()
+        return txt
 
-    def setupSelenium(
+    def switch_to_new_window(self):
+        """Troca para a última janela aberta"""
+        windows = self.driver.window_handles
+        self.driver.switch_to.window(windows[-1])
+        return windows
+    
+    def element_exists_xpath(self, xpath, time=5):
+        """Verifica se um elemento existe pelo XPATH"""
+        try:
+            WebDriverWait(self.driver, time).until(
+                EC.visibility_of_element_located((By.XPATH, xpath))
+            )
+            return True
+        except:
+            return False
+
+    def element_exists_css(self, selector, time=5):
+        """Verifica se um elemento existe por CSS"""
+        try:
+            WebDriverWait(self.driver, time).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, selector))
+            )
+            return True
+        except:
+            return False
+
+    def element_exists(self, by, value, time=5):
+        try:
+            WebDriverWait(self.driver, time).until(
+                EC.presence_of_element_located((by, value))
+            )
+            return True
+        except:
+            return False
+
+    def startRemoteSelenium(
             self,
             host,
             name="default",
-            use_selenoid=False,
             cust_opt = [],
             remove_default_options=False,
             download_path=None,
@@ -141,7 +234,7 @@ class SeleniumUts:
             options = DEFAULT_OPTIONS
         options += cust_opt
 
-        web_options = uc.ChromeOptions() if not use_selenoid else webdriver.ChromeOptions()
+        web_options = webdriver.ChromeOptions()
         for op in options: 
             web_options.add_argument(op)
 
@@ -164,21 +257,59 @@ class SeleniumUts:
 
         #================== START BROWSER ===========================
 
-        if use_selenoid:
-            web_options.add_experimental_option("useAutomationExtension", False)
-            web_options.add_experimental_option("excludeSwitches", ["enable-automation"])
 
-            CAPABILITIES["name"]        = name
-            CAPABILITIES["browserName"] = selenoid_browser[0]
-            CAPABILITIES["version"]     = selenoid_browser[1]
-            web_options.set_capability(name="selenoid:options", value=CAPABILITIES)
-            web_options.set_capability(name="browserName",      value=CAPABILITIES["browserName"])
+        web_options.add_experimental_option("useAutomationExtension", False)
+        web_options.add_experimental_option("excludeSwitches", ["enable-automation"])
 
-            self.driver = CustomRemoteDriver(command_executor=host, options=web_options)
-        else:
-            self.driver = uc.Chrome(options=web_options)
+        CAPABILITIES["name"]        = name
+        CAPABILITIES["browserName"] = selenoid_browser[0]
+        CAPABILITIES["version"]     = selenoid_browser[1]
+        web_options.set_capability(name="selenoid:options", value=CAPABILITIES)
+        web_options.set_capability(name="browserName",      value=CAPABILITIES["browserName"])
 
+        self.driver = CustomRemoteDriver(command_executor=host, options=web_options)
         self.driver.maximize_window()
         self.driver.implicitly_wait(10)
 
         return self.driver
+    
+    def startUC(
+        self,
+        version_main: int = 142,
+        enable_cdp_events: bool = True,
+        download_path: str = None,
+        custom_prefs: dict = {},
+        custom_args: list = []
+    ):
+        options = uc.ChromeOptions()
+ 
+        # PREFS padrão
+        prefs = {
+            "credentials_enable_service": False,
+            "profile.password_manager_enabled": False,
+            "profile.password_manager_leak_detection": False,
+            "download.default_directory": download_path,
+        }
+        prefs.update(custom_prefs)
+        options.add_experimental_option("prefs", prefs)
+ 
+        # ARGUMENTOS padrão
+        default_args = DEFAULT_OPTIONS.copy()
+        default_args.extend(custom_args)
+ 
+        for arg in default_args:
+            options.add_argument(arg)
+ 
+        # REMOVIDO: options.add_experimental_option("detach", True)
+        # Isso QUEBRA o UC e gera o erro que você recebeu.
+ 
+        # start UC
+        driver = uc.Chrome(
+            options=options,
+            enable_cdp_events=enable_cdp_events,
+            version_main=version_main,
+        )
+ 
+        self.driver = driver
+        driver.implicitly_wait(10)
+        return driver
