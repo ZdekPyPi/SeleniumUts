@@ -1,4 +1,4 @@
-# SeleniumLib
+# SeleniumUts
 
 Uma biblioteca Python que encapsula algumas funcionalidades do Selenium WebDriver, facilitando a automação de navegadores para testes e raspagem de dados. A biblioteca suporta o uso do `undetected_chromedriver` e integra-se facilmente com o Selenoid para execução de testes em ambientes distribuídos.
 
@@ -7,13 +7,13 @@ Uma biblioteca Python que encapsula algumas funcionalidades do Selenium WebDrive
 ### Importando a Biblioteca
 
 ```python
-from selenium_lib.selenium_lib import SeleniumLib
+from seleniumUts import SeleniumUts
 ```
 
-### Criando uma Instância de `SeleniumLib`
+### Criando uma Instância de `SeleniumUts`
 
 ```python
-selenium_lib = SeleniumLib()
+selenium_lib = SeleniumUts()
 ```
 
 ### Exemplos de Uso
@@ -73,7 +73,7 @@ selenium_lib.open_page('https://www.example.com')
 
 # Encontrar o campo de texto e enviar texto com atraso
 element = selenium_lib.wait_xpath('//input[@id="search-box"]')
-selenium_lib.delayed_send(element, 'Python Selenium', delay=0.2)
+element.delayed_send('Python Selenium', delay=0.2)
 
 # Fechar o navegador
 selenium_lib.close()
@@ -100,7 +100,7 @@ selenium_lib.close()
 - **`setupSelenium(host, name="default", use_selenoid=False, cust_opt=[], remove_default_options=False, download_path=None, selenoid_browser=("chrome","110.0"))`**: Configura o WebDriver do Selenium com opções personalizadas e preferências para o ChromeDriver. Suporta configuração para Selenoid.
 - **`open_page(page)`**: Abre uma página web e espera até que ela seja totalmente carregada.
 - **`wait_xpath(path, time=20, throw=True)`**: Aguarda até que um elemento, identificado por um caminho XPath, esteja visível no DOM.
-- **`delayed_send(element, word, delay)`**: Envia texto para um elemento, inserindo um atraso especificado entre cada caractere.
+- **`<el>.delayed_send(word, delay)`**: Envia texto para um elemento, inserindo um atraso especificado entre cada caractere.
 - **`scroll_end()`**: Rola até o final da página atual.
 - **`close()`**: Fecha o navegador e encerra a sessão do WebDriver.
 
