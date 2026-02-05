@@ -12,3 +12,4 @@ pypirc
 env
 *env
 .ruff_cache
+dist/
