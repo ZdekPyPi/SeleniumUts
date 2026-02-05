@@ -1,8 +1,0 @@
-README.md
-setup.py
-seleniumUts/__init__.py
-seleniumUts.egg-info/PKG-INFO
-seleniumUts.egg-info/SOURCES.txt
-seleniumUts.egg-info/dependency_links.txt
-seleniumUts.egg-info/requires.txt
-seleniumUts.egg-info/top_level.txt

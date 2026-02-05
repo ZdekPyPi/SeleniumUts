@@ -11,3 +11,4 @@ pypirc
 *.env
 env
 *env
+.ruff_cache
