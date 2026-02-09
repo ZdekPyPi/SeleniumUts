@@ -6,7 +6,12 @@ from seleniumUts import SeleniumUts
 
 slib = SeleniumUts()
 
-slib.startRemoteSelenium(host="HOST", name="FOI HEHE")
+slib.startChrome(
+    driver_path     = r"C:\chromedriver-win64\chromedriver.exe",
+    #binary_location = r"C:\Program Files\Google\Chrome\Application"
+    )
+
+#slib.startRemoteSelenium(host="HOST", name="FOI HEHE")
 
 slib.open_page("https://dec.prefeitura.sp.gov.br/login/connect.aspx")
 
