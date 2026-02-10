@@ -10,7 +10,7 @@ classifiers = [
 
 setup(
     name="seleniumUts",
-    version="1.1.2",
+    version="1.1.3",
     packages=find_packages(),
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

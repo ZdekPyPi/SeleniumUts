@@ -338,3 +338,14 @@ class CWebElement(WebElement):
         self.selenium_uts.save_to_pdf(file_name, single_page)
         self.selenium_uts.close_current_tab()
         pass
+    
+
+    def wait_visible(self,time=20):
+        """
+        Desc:
+            Wait until the element is visible.\n
+        Returns:
+            - The WebElement instance.
+        """
+        WebDriverWait(self.parent, time).until(EC.visibility_of(self))
+        return self
