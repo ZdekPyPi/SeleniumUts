@@ -214,20 +214,20 @@ class CWebElement(WebElement):
             def check_visibility(d):
                 # Tenta encontrar o(s) elemento(s) usando sua lógica customizada
                 if multiple:
-                    elements = self.parent.find_elements(
+                    elements = self.find_elements(
                         By.XPATH, path, selenium_uts=self.selenium_uts, time=time, custom_error=custom_error
                     )
                     # Filtra apenas os que estão visíveis
                     visible_elements = [el for el in elements if el.is_displayed()] if wait_visible else elements
                     return visible_elements if visible_elements else False
                 else:
-                    element = self.parent.find_element(
+                    element = self.find_element(
                         By.XPATH, path, selenium_uts=self.selenium_uts, time=time, custom_error=custom_error
                     )
                     # Retorna o elemento apenas se estiver visível no browser
                     return element if (element.is_displayed() if wait_visible else True) else False
             # O WebDriverWait vai repetir a função acima até retornar algo diferente de False/None
-            return WebDriverWait(self.parent, time).until(check_visibility)
+            return WebDriverWait(self, time).until(check_visibility)
         except Exception:
             if throw:
                 if custom_error:
