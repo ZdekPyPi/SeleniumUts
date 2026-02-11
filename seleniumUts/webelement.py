@@ -50,6 +50,10 @@ class CWebElement(WebElement):
                 el.custom_error = custom_error
         return elements
 
+    def send_keys(self, *value):
+        super().send_keys(*value)
+        return self
+
     def delayed_send(self, word, delay=0.5):
         """
         Desc:
