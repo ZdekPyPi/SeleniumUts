@@ -454,34 +454,38 @@ class SeleniumUts:
         # 3. Tirar o print padrão
         self.driver.save_screenshot(path)
 
-    def save_to_pdf(self, path, single_page=False):
+    def save_to_pdf(self,path,margin:bool=False,single_page:bool=False,width_mode="paper-width",width=8.5):
+        # width_mode -> fixed, fit-content, paper-width
         # O comando retorna um dicionário com os dados em Base64
-        params = {"printBackground": True, "landscape": False}
-        if single_page:
-            # Dividimos por 96 porque o padrão de tela é 96 DPI
-            dimensions = self.driver.execute_script("""
-                return {
-                    width: document.documentElement.offsetWidth / 96,
-                    height: document.documentElement.scrollHeight / 96
-                };
-            """)
+        fit_dimensions = self.driver.execute_script("return {width: document.documentElement.offsetWidth/96, height: document.documentElement.scrollHeight/96};")
 
-            params = {
-                **params,
-                "paperHeight": dimensions["height"],
-                "marginTop": 0,
-                "marginBottom": 0,
-                "marginLeft": 0,
-                "marginRight": 0,
-                "pageRanges": "1",  # Garante que ele foque na primeira (e única) página
-            }
+        no_margins = {
+            "marginTop": 0,
+            "marginBottom": 0,
+            "marginLeft": 0,
+            "marginRight": 0,
+        }
+        single_page = {
+            "paperHeight": fit_dimensions['height'],
+            "pageRanges": "1" # Garante que ele foque na primeira (e única) página
+        }
+
+
+
+        params = {
+            "printBackground": True,
+            "landscape"      : False,
+            "paperWidth"     : fit_dimensions['width'] if width_mode=="fit-content" else ( 8.5 if width_mode=="paper-width" else width ),
+            **({} if margin else no_margins),
+            **({} if not single_page else single_page)
+        }
 
         result = self.driver.execute_cdp_cmd("Page.printToPDF", params)
 
         # Salva o arquivo no diretório que você escolher agora
         with open(path, "wb") as f:
-            f.write(base64.b64decode(result["data"]))
-
+            f.write(base64.b64decode(result['data']))
+        
     def add_print_style(self):
         """
         Injeta regras de CSS para garantir que as cores e fundos
