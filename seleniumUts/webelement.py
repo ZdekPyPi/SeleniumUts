@@ -349,3 +349,17 @@ class CWebElement(WebElement):
         """
         WebDriverWait(self.parent, time).until(EC.visibility_of(self))
         return self
+    
+    def wait_clickable(self, time=10, throw=True, custom_error=None):
+        try:
+            WebDriverWait(self.parent, time).until(
+                EC.element_to_be_clickable((self._found_by, self._query_path))
+            )
+            return self
+        except TimeoutException:
+            if throw:
+                if custom_error:
+                    raise Exception(custom_error)
+                else:
+                    raise
+            return None
