@@ -1,13 +1,13 @@
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import Select
-import time
 from .uts import handle_stale
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, WebDriverException
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 import re
-from time import sleep
+from time import time,sleep
 
 
 class CWebElement(WebElement):
@@ -339,7 +339,6 @@ class CWebElement(WebElement):
         self.selenium_uts.close_current_tab()
         pass
     
-
     def wait_visible(self,time=20):
         """
         Desc:
@@ -363,3 +362,13 @@ class CWebElement(WebElement):
                 else:
                     raise
             return None
+    
+    def enter(self):
+        """
+        Desc:
+            Simula o pressionamento da tecla Enter no elemento.\n
+        Returns:
+            - The WebElement instance.
+        """
+        self.send_keys(Keys.ENTER)
+        return self
