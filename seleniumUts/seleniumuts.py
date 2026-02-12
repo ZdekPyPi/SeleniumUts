@@ -8,6 +8,8 @@ from time import time, sleep
 from pathlib import Path
 from glob import glob
 import base64
+from contextlib import contextmanager
+import tempfile
 
 CAPABILITIES = {
     "browserName": "chrome",
@@ -485,7 +487,7 @@ class SeleniumUts:
         # Salva o arquivo no diretório que você escolher agora
         with open(path, "wb") as f:
             f.write(base64.b64decode(result['data']))
-        
+                
     def add_print_style(self):
         """
         Injeta regras de CSS para garantir que as cores e fundos
@@ -522,6 +524,40 @@ class SeleniumUts:
             document.getElementsByTagName('head')[0].appendChild(style);
         """
         self.driver.execute_script(script, css_content)
+
+    @contextmanager
+    def temp_download_dir(self):
+        with tempfile.TemporaryDirectory() as pasta_temp:
+            pasta_atual = self.current_download_path
+            self.change_download_path(pasta_temp)
+            yield pasta_temp
+            self.change_download_path(pasta_atual)
+
+    def make_request(self,url:str,method:str="GET", headers:dict=None, body:str=None):
+        params = {k:v for k,v in { "method": method, "headers": headers, "body": body }.items() if v is not None}
+
+        code = """
+        var callback = arguments[arguments.length - 1]; // O Selenium injeta isso automaticamente
+        fetch('{}', {params})
+        .then(response => response.blob())
+        .then(res =>{{
+        var reader = new FileReader();
+        reader.onloadend = function() {{
+                    // Retorna o resultado para o Python
+                    callback(reader.result); 
+                }};
+                reader.readAsDataURL(res);
+        }})
+        .catch(err => callback("Erro: " + err));
+        """
+
+        code = code.format(url, params=params)
+
+        self.driver.set_script_timeout(60)
+        content = self.driver.execute_async_script(code)
+
+        return content
+
 
     def startRemoteSelenium(
         self,
@@ -682,6 +718,7 @@ class SeleniumUts:
             "autofill.profile_enabled": False,
             "plugins.always_open_pdf_externally": True,
             "profile.password_manager_leak_detection": False,
+            "profile.default_content_setting_values.automatic_downloads": 1, #ALLOWS MULTIPLE DOWNLOADS
             "printing.print_preview_sticky_settings.appState": '{"recentDestinations":[{"id":"Save as PDF","origin":"local","account":""}],"selectedDestinationId":"Save as PDF","version":2}',
         }
         prefs = {**prefs, **custom_prefs}
