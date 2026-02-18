@@ -8,6 +8,9 @@ from time import time, sleep
 from pathlib import Path
 from glob import glob
 import base64
+import secrets
+import string
+
 from contextlib import contextmanager
 import tempfile
 
@@ -378,38 +381,41 @@ class SeleniumUts:
         )
         self.current_download_path = self.default_download_path
 
-    def wait_downloads_done(
-        self, timeout_start=10, timeout_end=60, file_path=None, escape=False
-    ):
+    def is_download_in_progress(self):
         temp_files = (
-            lambda: glob(f"{self.current_download_path}/*.crdownload")
+            glob(f"{self.current_download_path}/*.crdownload")
             + glob(f"{self.current_download_path}/*.tmp")
             + glob(f"{self.current_download_path}/*.part")
         )
+        return len(temp_files) > 0
 
-        scape_files = lambda: glob(
-            f"{self.current_download_path}/{glob.escape(file_path)}"
-        )
+
+    def wait_downloads_done(
+        self, timeout_end=60, file_path=None, escape=False,num_files_expected=None
+    ):
+        time_start      = time()
+        scape_files     = lambda: glob(f"{self.current_download_path}/{glob.escape(file_path)}")
         not_scape_files = lambda: glob(f"{self.current_download_path}/{file_path}")
+        func_files      = scape_files if escape else not_scape_files
 
         if file_path:
-            start_time = time()
-            while not (scape_files() if escape else not_scape_files()):
-                if time() - start_time >= timeout_end:
+            while not func_files():
+                if time() - time_start >= timeout_end:
                     raise Exception("Download file not detected")
 
-            while temp_files():
+            while self.is_download_in_progress():
                 sleep(0.3)
-            return scape_files() if escape else not_scape_files()
+            if not num_files_expected:
+                return func_files()
 
-        # AGUARDA OS DOWNLOADS INICIAREM
-        start_time = time()
-        while not temp_files():
-            if time() - start_time >= timeout_start:
-                raise Exception("Download files not detected")
-
-        while temp_files():
-            sleep(0.3)
+        if num_files_expected is not None:
+            while True:
+                files = glob(f"{self.current_download_path}/*.*")
+                if len(files) == num_files_expected and not self.is_download_in_progress():
+                    return files
+                if time() - time_start >= timeout_end:
+                    raise Exception("Expected number of download files not detected")
+                sleep(0.3)
 
     def get_last_download_file(self):
         caminho_pasta = Path(self.current_download_path)
@@ -527,7 +533,9 @@ class SeleniumUts:
 
     @contextmanager
     def temp_download_dir(self):
-        with tempfile.TemporaryDirectory() as pasta_temp:
+        caracteres = string.ascii_letters + string.digits
+        random_name = ''.join(secrets.choice(caracteres) for i in range(4))
+        with tempfile.TemporaryDirectory(suffix=f"_{random_name}_download") as pasta_temp:
             pasta_atual = self.current_download_path
             self.change_download_path(pasta_temp)
             yield pasta_temp
