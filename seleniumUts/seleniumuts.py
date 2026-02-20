@@ -461,6 +461,24 @@ class SeleniumUts:
 
         # 3. Tirar o print padrão
         self.driver.save_screenshot(path)
+    
+    def save_image(self,file_path):
+        # Script JS para converter a imagem atual em Base64
+        js_script = r"""
+        var img = document.getElementsByTagName('img')[0];
+        var canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        return canvas.toDataURL('image/png').replace(/^data:image\/(png|jpg);base64,/, "");
+        """
+        
+        base64_string = self.driver.execute_script(js_script)
+
+        # Salva o arquivo no diretório que você escolher agora
+        with open(file_path, "wb") as f:
+            f.write(base64.b64decode(base64_string))
 
     def save_to_pdf(self,path,margin:bool=False,single_page:bool=False,width_mode="paper-width",width=8.5):
         # width_mode -> fixed, fit-content, paper-width
