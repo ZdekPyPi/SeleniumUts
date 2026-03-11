@@ -10,6 +10,7 @@ from glob import glob
 import base64
 import secrets
 import string
+import os
 
 from contextlib import contextmanager
 import tempfile
@@ -288,7 +289,7 @@ class SeleniumUts:
 
             self.driver.switch_to.window(new_window)
 
-    def back_main_tab(self):
+    def back_main_tab(self,close_others=False):
         """
         Desc:
             Switch back to the first browser tab.\n
@@ -296,6 +297,12 @@ class SeleniumUts:
         """
         windows = self.driver.window_handles
         self.driver.switch_to.window(windows[0])
+        if close_others and len(windows) > 1:
+            for window in windows[1:]:
+                self.driver.switch_to.window(window)
+                self.driver.close()
+            self.driver.switch_to.window(windows[0])
+
 
     def go_to_tab(self, index):
         """
@@ -610,6 +617,7 @@ class SeleniumUts:
             web_options.add_argument(op)
 
         if profile:
+            os.makedirs(profile, exist_ok=True)
             web_options.add_argument(r"user-data-dir={}".format(profile))
 
         web_options.headless = False
