@@ -150,7 +150,7 @@ class CWebElement(WebElement):
             thickness: A espessura da borda (ex: '3px', '5px').
         """
         if not mark:
-            return
+            return self
         # Define o novo estilo da borda
         new_style = f"{thickness} solid {color}"
 
