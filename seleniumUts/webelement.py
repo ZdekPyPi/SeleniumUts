@@ -105,8 +105,8 @@ class CWebElement(WebElement):
                     f"Elemento {self._query_path} não ficou clicável após {timeout}s"
                 )
             raise
-        except Exception:
-            pass
+        except Exception as e:
+            raise e
 
     def select_by_text(self, text):
         """
