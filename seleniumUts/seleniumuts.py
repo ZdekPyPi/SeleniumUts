@@ -6,7 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium import webdriver
 from time import time, sleep
 from pathlib import Path
-from glob import glob
+import glob
 import base64
 import secrets
 import string
@@ -560,7 +560,7 @@ class SeleniumUts:
     def temp_download_dir(self):
         caracteres = string.ascii_letters + string.digits
         random_name = ''.join(secrets.choice(caracteres) for i in range(4))
-        with tempfile.TemporaryDirectory(suffix=f"_{random_name}_download") as pasta_temp:
+        with tempfile.TemporaryDirectory(suffix=f"_{random_name}_download",ignore_cleanup_errors=True) as pasta_temp:
             pasta_atual = self.current_download_path
             self.change_download_path(pasta_temp)
             yield pasta_temp
