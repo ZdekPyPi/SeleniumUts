@@ -390,9 +390,9 @@ class SeleniumUts:
 
     def is_download_in_progress(self):
         temp_files = (
-            glob(f"{self.current_download_path}/*.crdownload")
-            + glob(f"{self.current_download_path}/*.tmp")
-            + glob(f"{self.current_download_path}/*.part")
+            glob.glob(f"{self.current_download_path}/*.crdownload")
+            + glob.glob(f"{self.current_download_path}/*.tmp")
+            + glob.glob(f"{self.current_download_path}/*.part")
         )
         return len(temp_files) > 0
 
@@ -401,8 +401,8 @@ class SeleniumUts:
         self, timeout_end=60, file_path=None, escape=False,num_files_expected=None
     ):
         time_start      = time()
-        scape_files     = lambda: glob(f"{self.current_download_path}/{glob.escape(file_path)}")
-        not_scape_files = lambda: glob(f"{self.current_download_path}/{file_path}")
+        scape_files     = lambda: glob.glob(f"{self.current_download_path}/{glob.escape(file_path)}")
+        not_scape_files = lambda: glob.glob(f"{self.current_download_path}/{file_path}")
         func_files      = scape_files if escape else not_scape_files
 
         if file_path:
@@ -417,7 +417,7 @@ class SeleniumUts:
 
         if num_files_expected is not None:
             while True:
-                files = glob(f"{self.current_download_path}/*.*")
+                files = glob.glob(f"{self.current_download_path}/*.*")
                 if len(files) == num_files_expected and not self.is_download_in_progress():
                     return files
                 if time() - time_start >= timeout_end:
